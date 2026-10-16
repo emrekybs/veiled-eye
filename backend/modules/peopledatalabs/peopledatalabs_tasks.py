@@ -1,0 +1,353 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+
+from celery.utils.log import get_task_logger
+from factories.configuration import api_keys_search
+from factories.fontcheat import search_icon_5
+from factories.helpers import location_geo
+from factories.task_wrapper import module_task
+from peopledatalabs import PDLPY
+
+logger = get_task_logger(__name__)
+
+
+@module_task(module_name="peopledatalabs")
+def p_peopledatalabs(email):
+    """Task of Celery that get info from peopledatalabs."""
+
+    # Code
+    raw_node = []
+
+    key = api_keys_search("peopledatalabs_key")
+
+    if not key:
+        raise Exception("warn: Missing or invalid Key")
+
+    # Create a client, specifying your API key
+    client = PDLPY(api_key=key)
+
+    # Create a parameters JSON object
+    params = {"email": [email]}
+
+    # Pass the parameters object to the Person Enrichment API
+    json_response = client.person.enrichment(**params).json()
+
+    # Check for successful response
+    if json_response["status"] != 200:
+        raise Exception(
+            f"warn: Enrichment unsuccessful. See error and try again. Desc: {json_response}"
+        )
+
+    raw_node = json_response["data"]
+
+    # Total
+    total = []
+    total.append({"module": "peopledatalabs"})
+    total.append({"param": email})
+    total.append({"validation": "hard"})
+
+    # Graphic Array
+    graphic = []
+
+    # Profile Array
+    profile = []
+
+    # Tasks Array
+    tasks = []
+
+    # Timeline Array
+    timeline = []
+
+    # Social Array
+    socialp = []
+    social_profile = []
+
+    # datalabs Array
+    datalabs = []
+
+    company = []
+
+    link_social = "Social"
+    social_item = {
+        "name-node": "Social",
+        "title": "Social",
+        "subtitle": "",
+        "icon": "fas fa-user",
+        "link": link_social,
+    }
+    socialp.append(social_item)
+
+    link_data = "DataLab"
+    data_item = {
+        "name-node": "DataLab",
+        "title": "DataLab",
+        "subtitle": "",
+        "icon": "fas fa-info-circle",
+        "link": link_data,
+    }
+    datalabs.append(data_item)
+
+    data = raw_node
+    if (data.get("job_company_name", "") != "") and (
+        data.get("job_company_name", "") is not None
+    ):
+        data_item = {
+            "name-node": "DataCompany",
+            "title": "Company",
+            "subtitle": data.get("job_company_name", "").capitalize(),
+            "icon": "fas fa-people-carry",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+        # Profile
+        company_item = {
+            "name": data.get("job_company_name", "").capitalize(),
+            "title": data.get("job_title", "").capitalize(),
+            "start": data.get("job_start_date", ""),
+            "end": data.get("job_last_update", ""),
+        }
+        company.append(company_item)
+        profile_item = {"location": data.get("job_company_location_name", "")}
+        profile.append(profile_item)
+
+        # Geolocalization
+        geo_item = location_geo(
+            data.get("job_company_location_name", ""),
+            data.get("job_last_updated", ""),
+        )
+        if geo_item:
+            profile.append({"geo": geo_item})
+
+        # Timeline
+        if data.get("job_start_date", ""):
+            timeline.append(
+                {
+                    "action": "Start : "
+                    + data.get("job_company_name", "").capitalize(),
+                    "date": data.get("job_start_date", "").replace("-", "/"),
+                    "desc": str(data.get("job_title", "")).capitalize()
+                    + " - Source PDL",
+                }
+            )
+        if data.get("end_date", ""):
+            timeline.append(
+                {
+                    "action": "End : " + data.get("job_company_name", "").capitalize(),
+                    "date": data.get("job_last_updated", "").replace("-", "/"),
+                    "desc": str(data.get("job_title", "")).capitalize()
+                    + " - Source PDL",
+                }
+            )
+
+    # Primary location
+    if (data.get("location_name", "") != "") and (
+        data.get("location_name", "") is not None
+    ):
+        data_item = {
+            "name-node": "DataLocation",
+            "title": "Location",
+            "subtitle": data.get("location_name", ""),
+            "icon": "fas fa-globe-americas",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+        # Profile
+        profile_item = {"location": data.get("location_name", "")}
+        profile.append(profile_item)
+
+        # Geolocalization
+        geo_item = location_geo(
+            data.get("location_name", "").capitalize(),
+            data.get("location_last_updated", ""),
+        )
+        if geo_item:
+            profile.append({"geo": geo_item})
+
+    # Primary name
+    if (data.get("full_name", "") != "") and (data.get("full_name", "") is not None):
+        try:
+            name_complete = (
+                data.get("first_name", "").capitalize()
+                + " "
+                + data.get("middle_name", "").capitalize()
+                + " "
+                + data.get("last_name", "").capitalize()
+            )
+        except Exception:
+            name_complete = (
+                data.get("first_name", "").capitalize()
+                + " "
+                + data.get("last_name", "").capitalize()
+            )
+
+        data_item = {
+            "name-node": "DataName",
+            "title": "Name",
+            "subtitle": name_complete,
+            "icon": "fas fa-signature",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+        # Profile
+        profile_item = {"name": name_complete}
+        profile.append(profile_item)
+
+    # Primary industry
+    if data.get("industry", "") and (data.get("industry", "") is not None):
+        data_item = {
+            "name-node": "DataInsdustry",
+            "title": "Industry",
+            "subtitle": str(data.get("industry")).capitalize(),
+            "icon": "fas fa-briefcase",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+    # Primary birthdate
+    if (data.get("birth_date", "") != "") and (data.get("birth_date", "") is not None):
+        data_item = {
+            "name-node": "DataBirth",
+            "title": "Birthday",
+            "subtitle": data.get("birth_date", ""),
+            "icon": "fas fa-birthday-cake",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+        timeline.append({"action": "BirthDay : " + data.get("birth_date", "")})
+
+    elif (data.get("birth_year", "") != "") and (
+        data.get("birth_year", "") is not None
+    ):
+        data_item = {
+            "name-node": "DataBirth",
+            "title": "BirthYear",
+            "subtitle": data.get("birth_year", ""),
+            "icon": "fas fa-birthday-cake",
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+        timeline.append({"action": "BirthYear : " + data.get("birth_year", "")})
+
+    # Gender
+    if (data.get("gender", "") != "") and (data.get("gender", "") is not None):
+        temp = data.get("gender", "")
+
+        if temp == "male":
+            icon = "fas fa-mars"
+        elif temp == "female":
+            icon = "fas fa-venus"
+        else:
+            icon = "fas fa-genderless"
+
+        data_item = {
+            "name-node": "DataGener",
+            "title": "Gender",
+            "subtitle": temp,
+            "icon": icon,
+            "link": link_data,
+        }
+        datalabs.append(data_item)
+
+    # Emails profile
+    if (data.get("emails", "") != "") and (data.get("emails", "") is not None):
+        for mail in data.get("emails", ""):
+            profile_item = {"email": mail["address"]}
+            profile.append(profile_item)
+
+    # Profiles RRSS
+    if (data.get("profiles", "") != "") and (data.get("profiles", "") is not None):
+        for social in data.get("profiles", ""):
+            if social.get("username", ""):
+                subtitle = social.get("username", "")
+            else:
+                subtitle = "Not identified"
+
+            fa_icon = search_icon_5(social.get("network", ""))
+            if fa_icon is None:
+                fa_icon = "far fa-user"
+
+            social_item = {
+                "name-node": social.get("network", ""),
+                "title": social.get("network", ""),
+                "subtitle": subtitle,
+                "icon": fa_icon,
+                "link": link_social,
+            }
+            socialp.append(social_item)
+            social_profile_item = {
+                "name": social.get("network"),
+                "icon": fa_icon,
+                "source": "PeopleDataLabs",
+                "username": social.get("username"),
+                "url": social.get("url"),
+            }
+            social_profile.append(social_profile_item)
+
+            tasks.append(
+                {
+                    "module": social.get("network", "").lower(),
+                    "param": social.get("username", ""),
+                }
+            )
+
+        profile.append({"social": social_profile})
+
+    # Profiles phones
+    if (data.get("phone_numbers", "") != "") and (
+        data.get("phone_numbers", "") is not None
+    ):
+        for phone in data.get("phone_numbers", ""):
+            profile_item = {"phone": phone}
+            profile.append(profile_item)
+
+    # Profiles location
+    if (data.get("location_names", "") != "") and (
+        data.get("location_names", "") is not None
+    ):
+        for location in data.get("location_names", ""):
+            profile_item = {"location": location.capitalize()}
+            profile.append(profile_item)
+
+            # Geolocalization
+            geo_item = location_geo(location)
+            if geo_item:
+                profile.append({"geo": geo_item})
+
+    total.append({"raw": raw_node})
+    graphic.append({"data": datalabs})
+    graphic.append({"social": socialp})
+    total.append({"graphic": graphic})
+    if profile:
+        total.append({"profile": profile})
+    if timeline:
+        total.append({"timeline": timeline})
+    if tasks:
+        total.append({"tasks": tasks})
+
+    return total
+
+
+# Backward-compatible alias: existing code references t_peopledatalabs
+t_peopledatalabs = p_peopledatalabs
+
+
+def output(data):
+    print(json.dumps(data, ensure_ascii=True, indent=2))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Query PeopleDataLabs for person enrichment"
+    )
+    parser.add_argument("email", help="Email address to look up")
+    args = parser.parse_args()
+
+    result = t_peopledatalabs(args.email)
+    output(result)

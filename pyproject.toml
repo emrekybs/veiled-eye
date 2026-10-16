@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veiled-eye"
+version = "3.1.0"
+description = "Veiled Eye: identity investigation and OSINT correlation for e-mails, usernames, phone numbers and wallets, with a web UI, relationship graph and reports."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.10"
+authors = [{ name = "Emre Köybaşı" }]
+maintainers = [{ name = "Emre Köybaşı" }]
+keywords = ["osint", "cti", "maigret", "sherlock", "reconnaissance", "threat-intelligence"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Information Technology",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Environment :: Console",
+    "Framework :: FastAPI",
+]
+dynamic = ["dependencies"]
+
+[project.scripts]
+veiled-eye = "veiled_eye.cli:main"
+veye = "veiled_eye.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/emrekybs/veiled-eye"
+Source = "https://github.com/emrekybs/veiled-eye"
+Issues = "https://github.com/emrekybs/veiled-eye/issues"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+# Packages are discovered in setup.py (backend/ is installed as the ``veiled_eye``
+# package, every module folder included automatically).
+[tool.setuptools.package-data]
+veiled_eye = [
+    "**/*.json", "**/*.txt", "**/*.sh", "**/*.ttf",
+    "frontend_dist/**/*",
+]
+
+[tool.setuptools.exclude-package-data]
+veiled_eye = ["factories/apikeys.json", "cookies/*.json", "outputs/*"]

@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-ast
+      - id: check-toml
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.7
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: hadolint-docker
+        name: Lint Dockerfiles with hadolint
+        description: Runs hadolint inside Docker to lint Dockerfiles
+        entry: bash -c 'docker run --rm -i -v "$(pwd):/workspace" -w /workspace hadolint/hadolint hadolint --failure-threshold warning "$@"' bash
+        language: system
+        types: [dockerfile]
+        # warning threshold = fail on warning or error, ignore info/style

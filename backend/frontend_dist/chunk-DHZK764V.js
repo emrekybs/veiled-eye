@@ -1,0 +1,1 @@
+import{Cb as p,Na as o,hb as r,ib as a}from"./chunk-ZB5NI6MB.js";import"./chunk-DAQOROHW.js";var n=class t{static \u0275fac=function(e){return new(e||t)};static \u0275cmp=o({type:t,selectors:[["vey-report-page"]],decls:2,vars:0,template:function(e,s){e&1&&(r(0,"p"),p(1,"Report works!"),a())},encapsulation:2})};export{n as ReportPage};

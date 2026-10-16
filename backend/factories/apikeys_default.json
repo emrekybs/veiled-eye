@@ -1,0 +1,147 @@
+[
+  {
+    "id": 1,
+    "name": "linkedin_li_at",
+    "key": ""
+  },
+  {
+    "id": 2,
+    "name": "linkedin_JSESSIONID",
+    "key": ""
+  },
+  {
+    "id": 3,
+    "name": "instagram_cookies",
+    "key": ""
+  },
+  {
+    "id": 4,
+    "name": "instagram_sessionid",
+    "key": ""
+  },
+  {
+    "id": 5,
+    "name": "instagram_ds_user_id",
+    "key": ""
+  },
+  {
+    "id": 6,
+    "name": "instagram_csrftoken",
+    "key": ""
+  },
+  {
+    "id": 7,
+    "name": "instagram_mid",
+    "key": ""
+  },
+  {
+    "id": 8,
+    "name": "instagram_ig_did",
+    "key": ""
+  },
+  {
+    "id": 9,
+    "name": "instagram_datr",
+    "key": ""
+  },
+  {
+    "id": 10,
+    "name": "instagram_ps_l",
+    "key": ""
+  },
+  {
+    "id": 11,
+    "name": "instagram_ps_n",
+    "key": ""
+  },
+  {
+    "id": 12,
+    "name": "instagram_wd",
+    "key": ""
+  },
+  {
+    "id": 13,
+    "name": "twitter_cookies",
+    "key": ""
+  },
+  {
+    "name": "github_token",
+    "key": "",
+    "id": 14
+  },
+  {
+    "id": 15,
+    "name": "emailrep_key",
+    "key": ""
+  },
+  {
+    "id": 16,
+    "name": "peopledatalabs_key",
+    "key": ""
+  },
+  {
+    "id": 17,
+    "name": "leaklookup_key",
+    "key": ""
+  },
+  {
+    "id": 18,
+    "name": "spotify_client_id",
+    "key": ""
+  },
+  {
+    "id": 19,
+    "name": "spotify_client_secret",
+    "key": ""
+  },
+  {
+    "id": 20,
+    "name": "twitch_client_id",
+    "key": ""
+  },
+  {
+    "id": 21,
+    "name": "twitch_client_secret",
+    "key": ""
+  },
+  {
+    "id": 22,
+    "name": "cse_api_key",
+    "key": ""
+  },
+  {
+    "id": 23,
+    "name": "cse_cx",
+    "key": ""
+  },
+  {
+    "id": 24,
+    "name": "brave_key",
+    "key": ""
+  },
+  {
+    "id": 25,
+    "name": "tiktok_cookies",
+    "key": ""
+  },
+  {
+    "id": 26,
+    "name": "linkedin_cookies",
+    "key": ""
+  },
+  {
+    "id": 27,
+    "name": "youtube_key",
+    "key": ""
+  },
+  {
+    "id": 28,
+    "name": "proxy_list",
+    "key": ""
+  },
+  {
+    "id": 29,
+    "name": "proxy_hosts",
+    "key": ""
+  }
+]

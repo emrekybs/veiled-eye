@@ -1,0 +1,1 @@
+import{Cb as i,Na as t,hb as a,ib as n}from"./chunk-ZB5NI6MB.js";import"./chunk-DAQOROHW.js";var s=class o{static \u0275fac=function(e){return new(e||o)};static \u0275cmp=t({type:o,selectors:[["vey-comparison-page"]],decls:2,vars:0,template:function(e,m){e&1&&(a(0,"p"),i(1,"Comparison works!"),n())},encapsulation:2})};export{s as ComparisonPage};
