@@ -16,6 +16,17 @@ pipx install veiled-eye      # recommended
 pip install veiled-eye
 ```
 
+### From source (without PyPI)
+
+```shell
+git clone https://github.com/emrekybs/veiled-eye
+cd veiled-eye
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
+```
+
+or in one line, isolated: `pipx install git+https://github.com/emrekybs/veiled-eye`
+
 ## Run
 
 ```shell
