@@ -6,7 +6,7 @@ Identity investigation for OSINT and CTI. Give it an e-mail, username, phone
 number or crypto wallet. It runs 46 sources in parallel, follows every lead
 they return and correlates everything into one profile.
 
-<p align="center"><img src="imgs/home.png" alt="Veiled Eye home"></p>
+<p align="center"><img src="imgs/home.jpg" alt="Veiled Eye home"></p>
 
 ## Install
 
@@ -50,19 +50,19 @@ Keys, cookies and the proxy list are set in the web UI under **API Keys**.
 
 **Username**
 
-<p align="center"><img src="imgs/scan-username.png" alt="Username scan"></p>
+<p align="center"><img src="imgs/scan-username.jpg" alt="Username scan"></p>
 
 **E-mail**
 
-<p align="center"><img src="imgs/scan-email.png" alt="E-mail scan"></p>
+<p align="center"><img src="imgs/scan-email.jpg" alt="E-mail scan"></p>
 
 **Phone**
 
-<p align="center"><img src="imgs/scan-phone.png" alt="Phone scan"></p>
+<p align="center"><img src="imgs/scan-phone.jpg" alt="Phone scan"></p>
 
 **Relationship graph**
 
-<p align="center"><img src="imgs/graph.png" alt="Relationship graph"></p>
+<p align="center"><img src="imgs/graph.jpg" alt="Relationship graph"></p>
 
 Exports: PDF / HTML report, STIX 2.1, GraphML, CSV, JSON.
 
