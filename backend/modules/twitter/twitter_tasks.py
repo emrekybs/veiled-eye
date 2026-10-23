@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import json
 import os
+import re
 import sys
 from collections import Counter
 from collections.abc import Coroutine
@@ -89,7 +90,59 @@ def _patch_twikit_user() -> None:
     user_cls._ve_patched = True
 
 
+# x.com moved the ``ondemand.s`` hash into a webpack chunk map in Mar 2026, so
+# twikit 2.3.3 fails every call with "Couldn't get KEY_BYTE indices"
+# (d60/twikit#416). Same fix as steverex169/twikit@a7099a7, applied here so the
+# PyPI release of twikit can be used (PyPI rejects git+ dependencies).
+_CHUNK_NAME_RE = re.compile(r'(\d+):"ondemand\.s"')
+
+
+def _ondemand_hash(page: str, legacy_re: re.Pattern) -> str | None:
+    old = legacy_re.search(page)
+    if old:
+        return old.group(1)
+    chunk = _CHUNK_NAME_RE.search(page)
+    if not chunk:
+        return None
+    for m in re.finditer(rf'{chunk.group(1)}:"(\w+)"', page):
+        if m.group(1) != "ondemand" and len(m.group(1)) <= 12:
+            return m.group(1)
+    return None
+
+
+def _patch_twikit_transaction() -> None:
+    """Replace ClientTransaction.get_indices with the webpack-aware lookup."""
+    try:
+        from twikit.x_client_transaction import transaction as tx
+    except Exception:  # twikit mocked in tests / layout changed
+        return
+    cls = getattr(tx, "ClientTransaction", None)
+    if cls is None or getattr(cls, "_ve_patched", False):
+        return
+    if not getattr(cls, "__module__", "").startswith("twikit"):
+        return
+
+    async def get_indices(self, home_page_response, session, headers):
+        response = self.validate_response(home_page_response) or self.home_page_response
+        file_hash = _ondemand_hash(str(response), tx.ON_DEMAND_FILE_REGEX)
+        key_byte_indices = []
+        if file_hash:
+            url = f"https://abs.twimg.com/responsive-web/client-web/ondemand.s.{file_hash}a.js"
+            js = await session.request(method="GET", url=url, headers=headers)
+            key_byte_indices = [
+                m.group(2) for m in tx.INDICES_REGEX.finditer(str(js.text))
+            ]
+        if not key_byte_indices:
+            raise Exception("Couldn't get KEY_BYTE indices")
+        key_byte_indices = list(map(int, key_byte_indices))
+        return key_byte_indices[0], key_byte_indices[1:]
+
+    cls.get_indices = get_indices
+    cls._ve_patched = True
+
+
 _patch_twikit_user()
+_patch_twikit_transaction()
 
 # ---------------------------------------------------------------------------
 # Cookie persistence

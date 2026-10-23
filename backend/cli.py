@@ -4,7 +4,7 @@
   veiled-eye scan johndoe                     # username investigation (no Redis needed)
   veiled-eye scan -e john@acme.com -u johndoe # e-mail + username, cross-correlated
   veiled-eye scan johndoe -m maigret,gitsniff -o report.json
-  veiled-eye serve                            # web UI on http://127.0.0.1:4300
+  veiled-eye serve                            # web UI on http://127.0.0.1:4300 (alias: server)
   veiled-eye modules                          # list modules
   veiled-eye doctor                           # check optional system dependencies
 
@@ -376,13 +376,26 @@ def _gateway(frontend_dir: Path):
     return gw
 
 
+def _use_local_queue() -> None:
+    """Point Celery at a folder queue under ``$VEILED_HOME/queue`` (no Redis)."""
+    queue = VEILED_HOME / "queue"
+    shutil.rmtree(queue, ignore_errors=True)  # tasks from a previous run are dead
+    for sub in ("messages", "control", "results"):
+        (queue / sub).mkdir(parents=True)
+    os.environ["VEILED_QUEUE_DIR"] = str(queue)
+    os.environ["CELERY_BROKER_URL"] = "filesystem://"
+    os.environ["CELERY_RESULT_BACKEND"] = (queue / "results").as_uri()
+
+
 def cmd_serve(args) -> int:
     _prepare_env("redis")
+    broker_given = "CELERY_BROKER_URL" in os.environ
     broker = os.environ.setdefault(
         "CELERY_BROKER_URL", f"redis://127.0.0.1:{args.redis_port}/0"
     )
     os.environ.setdefault("CELERY_RESULT_BACKEND", broker)
     procs: list[subprocess.Popen] = []
+    local_queue = False
 
     def stop(*_):
         for p in reversed(procs):
@@ -423,6 +436,12 @@ def cmd_serve(args) -> int:
                 if _port_open(rhost, rport):
                     break
                 time.sleep(0.25)
+        elif not broker_given and not args.no_worker:
+            # No Redis on this machine: queue tasks through a local folder so
+            # `veiled-eye serve` works right after `pipx install`.
+            _use_local_queue()
+            local_queue = True
+            print(">>> Redis not found, using the built-in local task queue")
         else:
             print(
                 f"!!! Redis not reachable at {rhost}:{rport}.\n"
@@ -448,6 +467,12 @@ def cmd_serve(args) -> int:
                     "-O",
                     "fair",
                     "--prefetch-multiplier=1",
+                    # the folder queue has no broadcast channel
+                    *(
+                        ["--without-gossip", "--without-mingle", "--without-heartbeat"]
+                        if local_queue
+                        else []
+                    ),
                 ],
                 cwd=str(PKG_DIR),
                 env=env,
@@ -549,7 +574,7 @@ def cmd_doctor(_args) -> int:
     check(
         "redis-server (veiled-eye serve)",
         shutil.which("redis-server"),
-        "optional: or use docker redis",
+        "optional: serve falls back to a local queue",
     )
     check(
         "tor socks proxy :9050 (darkweb module)",
@@ -609,7 +634,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     s.set_defaults(func=cmd_scan)
 
-    v = sub.add_parser("serve", help="run API + worker + web UI")
+    v = sub.add_parser("serve", aliases=["server"], help="run API + worker + web UI")
     v.add_argument("--host", default="127.0.0.1")
     v.add_argument("--port", type=int, default=4300)
     v.add_argument("--redis-port", type=int, default=6379)

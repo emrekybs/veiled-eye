@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+import re
 import sys
 import types
 from pathlib import Path
@@ -788,6 +789,26 @@ def test_requirements_keeps_browser_cookie3():
     assert "browser-cookie3" in content, (
         "browser-cookie3 must remain in requirements.txt (linkedin/tiktok use it)"
     )
+
+
+def test_requirements_are_pypi_installable():
+    """requirements.txt feeds the wheel's metadata: PyPI rejects direct URLs."""
+    lines = [
+        ln.split("#")[0].strip() for ln in REQUIREMENTS_FILE.read_text().splitlines()
+    ]
+    assert not [ln for ln in lines if " @ " in ln or "git+" in ln]
+    assert not [ln for ln in lines if ln.lower().startswith("pytest")]
+
+
+def test_ondemand_hash_handles_old_and_webpack_formats():
+    """KEY_BYTE lookup fix for twikit 2.3.3 (x.com webpack chunk map)."""
+    legacy = re.compile(
+        r"""['|\"]{1}ondemand\.s['|\"]{1}:\s*['|\"]{1}([\w]*)['|\"]{1}"""
+    )
+    assert twitter_tasks._ondemand_hash("{'ondemand.s': 'abc123'}", legacy) == "abc123"
+    page = '{20113:"ondemand.s",20114:"x"}...{20113:"9f0e1d2c",20114:"ff"}'
+    assert twitter_tasks._ondemand_hash(page, legacy) == "9f0e1d2c"
+    assert twitter_tasks._ondemand_hash("<html></html>", legacy) is None
 
 
 # ---------------------------------------------------------------------------

@@ -53,3 +53,16 @@ celery.conf.update(
     task_acks_late=False,
     broker_connection_retry_on_startup=True,
 )
+
+# `veiled-eye serve` without Redis (see cli.cmd_serve): the API and the worker
+# share a folder-based queue (broker ``filesystem://``, results ``file://``).
+_QUEUE_DIR = os.environ.get("VEILED_QUEUE_DIR")
+if _QUEUE_DIR:
+    _MESSAGES = os.path.join(_QUEUE_DIR, "messages")
+    celery.conf.broker_transport_options = {
+        "data_folder_in": _MESSAGES,
+        "data_folder_out": _MESSAGES,
+        "control_folder": os.path.join(_QUEUE_DIR, "control"),
+        "store_processed": False,
+        "polling_interval": 0.2,
+    }

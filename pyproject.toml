@@ -38,6 +38,9 @@ Homepage = "https://github.com/emrekybs/veiled-eye"
 Source = "https://github.com/emrekybs/veiled-eye"
 Issues = "https://github.com/emrekybs/veiled-eye/issues"
 
+[project.optional-dependencies]
+test = ["pytest==8.3.5"]
+
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
 

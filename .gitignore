@@ -39,6 +39,10 @@ Thumbs.db
 # Another extensions #
 ######################
 *.txt
+# ...except files the package and Docker build need
+!requirements.txt
+!backend/modules/reddit/all-locations.txt
+!backend/factories/fonts/*.txt
 *.cvs
 *.csv
 *.xls
@@ -140,4 +144,4 @@ frontend/dist-native/
 
 # Local dev / legacy #
 ######################
-frontend/
+/frontend/

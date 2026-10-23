@@ -14,7 +14,7 @@ RUN apt-get update && \
 # Copy and install Python dependencies (cached layer)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt pytest==8.3.5
 
 # Install Playwright browsers (required by TikTokApi)
 RUN playwright install --with-deps chromium
